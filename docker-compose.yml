@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  fraud-surveillance-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mobile-money-fraud-engine:v1
+    container_name: fraud_switch_instance
+    ports:
+      - "8000:8000"  # FastAPI REST Gateway
+      - "8501:8501"  # Streamlit Surveillance Console
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NDPR_PEPPER_SALT=miva_mit8313_cbn_ndpr_secure_salt_2026
+      - MODELS_DIR=models
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./screenshots:/app/screenshots
+    restart: unless-stopped
+

@@ -1,0 +1,49 @@
+{
+    "benchmark_summary": {
+        "Isolation Forest": {
+            "precision": 8.68,
+            "recall": 8.46,
+            "f1_score": 0.0845,
+            "auc_roc": 0.9936,
+            "pr_auc": 0.127,
+            "fpr": 0.12,
+            "mean_latency_ms": 0.01
+        }
+    },
+    "feature_names_10": [
+        "step",
+        "amount",
+        "oldbalanceOrg",
+        "newbalanceOrig",
+        "oldbalanceDest",
+        "newbalanceDest",
+        "errorBalanceOrig",
+        "errorBalanceDest",
+        "isCompleteDrain",
+        "amountToBalanceRatio"
+    ],
+    "feature_names_all": [
+        "step",
+        "amount",
+        "oldbalanceOrg",
+        "newbalanceOrig",
+        "oldbalanceDest",
+        "newbalanceDest",
+        "errorBalanceOrig",
+        "errorBalanceDest",
+        "isCompleteDrain",
+        "amountToBalanceRatio",
+        "type_CASH_IN",
+        "type_CASH_OUT",
+        "type_DEBIT",
+        "type_PAYMENT",
+        "type_TRANSFER"
+    ],
+    "timestamp": "2026-11-11 19:59:26",
+    "total_records": 100000,
+    "fraud_prevalence": 0.0013,
+    "thresholds": {
+        "low_risk": 0.3,
+        "suspicious_risk": 0.7
+    }
+}
