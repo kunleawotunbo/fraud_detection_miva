@@ -1,12 +1,39 @@
 {
     "benchmark_summary": {
+        "Cost-Weighted XGBoost": {
+            "precision": 100.0,
+            "recall": 100.0,
+            "f1_score": 1.0,
+            "auc_roc": 1.0,
+            "pr_auc": 1.0,
+            "fpr": 0.0,
+            "mean_latency_ms": 0.0
+        },
+        "Deep Autoencoder": {
+            "precision": 11.4,
+            "recall": 100.0,
+            "f1_score": 0.2046,
+            "auc_roc": 0.9979,
+            "pr_auc": 0.239,
+            "fpr": 1.012,
+            "mean_latency_ms": 0.0
+        },
+        "LSTM Recurrent Model": {
+            "precision": 100.0,
+            "recall": 100.0,
+            "f1_score": 1.0,
+            "auc_roc": 1.0,
+            "pr_auc": 1.0,
+            "fpr": 0.0,
+            "mean_latency_ms": 0.0
+        },
         "Isolation Forest": {
-            "precision": 8.68,
-            "recall": 8.46,
-            "f1_score": 0.0845,
-            "auc_roc": 0.9936,
-            "pr_auc": 0.127,
-            "fpr": 0.12,
+            "precision": 4.56,
+            "recall": 4.55,
+            "f1_score": 0.0455,
+            "auc_roc": 0.9902,
+            "pr_auc": 0.0707,
+            "fpr": 0.125,
             "mean_latency_ms": 0.01
         }
     },
@@ -39,9 +66,9 @@
         "type_PAYMENT",
         "type_TRANSFER"
     ],
-    "timestamp": "2026-11-11 19:59:26",
-    "total_records": 100000,
-    "fraud_prevalence": 0.0013,
+    "timestamp": "2026-11-14 13:48:31",
+    "total_records": 1048575,
+    "fraud_prevalence": 0.0012998593329041795,
     "thresholds": {
         "low_risk": 0.3,
         "suspicious_risk": 0.7

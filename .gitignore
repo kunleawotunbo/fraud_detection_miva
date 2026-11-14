@@ -1,0 +1,70 @@
+# ==============================================================================
+# Git Ignore Configuration: Mobile Money Fraud Surveillance System
+# Miva Open University - Master of Information Technology (MIT 8313)
+# ==============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+
+# Testing & Coverage Caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Cache & Temporary Directories
+.matplotlib_cache/
+.cache/
+tmp/
+temp/
+*.tmp
+
+# Environment Variables & Secrets (NDPR Security)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# Streamlit Local Configurations
+.streamlit/secrets.toml
+
+# IDE & Editor Specific Files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Large Synthetic Datasets (Generated locally via data_generator.py)
+data/*.csv
+!data/.gitkeep
+
+# Docker & Containerization Artifacts
+*.pid
+.dockerignore.bak
+
+# Large Model Binary Checkpoints (Optional: un-comment if using Git LFS or external artifact storage)
+# models/*.pt
+# models/*.joblib
+# !models/metadata.json
+# !models/*.png
+

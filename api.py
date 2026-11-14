@@ -7,6 +7,14 @@ TreeSHAP feature attribution, and NDPR SHA-256 salted account pseudonymization.
 """
 
 import os
+import sys
+
+# Ensure persistent cache for matplotlib
+mpl_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".matplotlib_cache"))
+os.makedirs(mpl_dir, exist_ok=True)
+if "MPLCONFIGDIR" not in os.environ:
+    os.environ["MPLCONFIGDIR"] = mpl_dir
+
 import time
 import json
 import logging
@@ -14,7 +22,7 @@ from typing import Optional, List, Dict, Any
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 import numpy as np
 import joblib
 
@@ -91,9 +99,8 @@ def load_artifacts():
             logger.error(f"Error loading metadata: {e}")
 
 
-@app.on_event("startup")
-def startup_event():
-    load_artifacts()
+# Eagerly load artifacts if present on disk
+load_artifacts()
 
 
 # -----------------------------------------------------------------------
@@ -110,8 +117,8 @@ class TransactionPayload(BaseModel):
     nameOrig: Optional[str] = Field(default="C1234567890", description="Origin account ID (pseudonymized on ingestion)")
     nameDest: Optional[str] = Field(default="M9876543210", description="Destination account ID (pseudonymized on ingestion)")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "step": 142,
                 "type": "TRANSFER",
@@ -124,6 +131,7 @@ class TransactionPayload(BaseModel):
                 "nameDest": "M9876543210",
             }
         }
+    )
 
 
 class RiskFactor(BaseModel):
@@ -176,7 +184,7 @@ def health():
 
 
 @app.post("/api/v1/score-transaction", response_model=ScoringResponse, tags=["Scoring"])
-async def score_transaction(payload: TransactionPayload):
+def score_transaction(payload: TransactionPayload):
     """
     Real-time transaction scoring endpoint.
     Guarantees sub-15ms processing latency conforming to USSD network constraints.

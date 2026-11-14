@@ -6,10 +6,17 @@ Test Cases TC-01 through TC-06 documented in Table 5.1 of the Master's Thesis re
 Compatible with standard Python unittest and pytest.
 """
 
+import os
+import sys
 import time
 import unittest
 import numpy as np
 import pandas as pd
+
+# Guarantee project root is in sys.path regardless of execution context
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from security import pseudonymize_identifier, sanitize_audit_record
 from feature_engineering import (
@@ -59,34 +66,38 @@ class TestMobileMoneySurveillanceSystem(unittest.TestCase):
         Expected Result: Resample train fold to 50/50 balance; test fold untouched (0 data leakage).
         Status: PASSED
         """
+        from sklearn.model_selection import StratifiedKFold
+
         n_total = 2000
-        n_fraud = int(n_total * 0.0013) + 2  # at least a few fraud cases
+        n_fraud = 20  # imbalanced minority distribution
         n_legit = n_total - n_fraud
 
         y_synthetic = np.array([0] * n_legit + [1] * n_fraud)
         X_synthetic = np.random.randn(len(y_synthetic), 10)
 
-        # Split 80/20 train/test
-        split_idx = int(0.80 * len(y_synthetic))
-        X_train, X_test = X_synthetic[:split_idx], X_synthetic[split_idx:]
-        y_train, y_test = y_synthetic[:split_idx], y_synthetic[split_idx:]
+        # Stratified 5-Fold split (80% train, 20% test) preserving minority representation
+        skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+        train_idx, test_idx = next(skf.split(X_synthetic, y_synthetic))
+        X_train, X_test = X_synthetic[train_idx], X_synthetic[test_idx]
+        y_train, y_test = y_synthetic[train_idx], y_synthetic[test_idx]
 
-        test_fraud_ratio_before = np.mean(y_test)
+        test_fraud_count_before = np.sum(y_test)
+        test_len_before = len(y_test)
 
         try:
             from imblearn.over_sampling import SMOTE
-            smote = SMOTE(k_neighbors=1, random_state=42)
+            smote = SMOTE(k_neighbors=2, random_state=42)
             X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
 
             # Training fold is balanced 50:50
             self.assertEqual(np.sum(y_train_res == 0), np.sum(y_train_res == 1))
-            # Test fold remains completely untouched
-            self.assertEqual(len(y_test), len(X_test))
-            self.assertEqual(np.mean(y_test), test_fraud_ratio_before)
+            # Test fold remains completely untouched (zero data leakage)
+            self.assertEqual(len(y_test), test_len_before)
+            self.assertEqual(np.sum(y_test), test_fraud_count_before)
         except ImportError:
             # When imblearn is not installed, verify mathematically that train-only isolation logic is intact
-            self.assertEqual(len(y_test), len(X_test))
-            self.assertEqual(np.mean(y_test), test_fraud_ratio_before)
+            self.assertEqual(len(y_test), test_len_before)
+            self.assertEqual(np.sum(y_test), test_fraud_count_before)
 
     def test_tc03_xgboost_engine_sub50ms_latency(self):
         """
@@ -171,22 +182,25 @@ class TestMobileMoneySurveillanceSystem(unittest.TestCase):
         Expected Result: Return status success with risk tier and NDPR compliance payload.
         Status: PASSED
         """
+        request_body = {
+            "step": 142,
+            "type": "TRANSFER",
+            "amount": 350000.0,
+            "oldbalanceOrg": 350000.0,
+            "newbalanceOrig": 0.0,
+            "oldbalanceDest": 15000.0,
+            "newbalanceDest": 365000.0,
+            "nameOrig": "C1234567890",
+            "nameDest": "M9876543210",
+        }
+
+        # Attempt to test via TestClient if httpx is installed
+        tested = False
         try:
+            import httpx
             from fastapi.testclient import TestClient
             from api import app
             client = TestClient(app)
-            request_body = {
-                "step": 142,
-                "type": "TRANSFER",
-                "amount": 350000.0,
-                "oldbalanceOrg": 350000.0,
-                "newbalanceOrig": 0.0,
-                "oldbalanceDest": 15000.0,
-                "newbalanceDest": 365000.0,
-                "nameOrig": "C1234567890",
-                "nameDest": "M9876543210",
-            }
-
             response = client.post("/api/v1/score-transaction", json=request_body)
             self.assertEqual(response.status_code, 200)
             payload = response.json()
@@ -194,20 +208,21 @@ class TestMobileMoneySurveillanceSystem(unittest.TestCase):
             self.assertIn(payload["action"], ["ALLOW", "REVIEW", "BLOCK"])
             self.assertEqual(payload["compliance"]["ndpr_status"], "COMPLIANT")
             self.assertTrue(payload["compliance"]["stateless_processing"])
-        except ImportError:
-            # Verify scoring logic directly if fastapi testclient is not installed
-            payload = {
-                "step": 142,
-                "type": "TRANSFER",
-                "amount": 350000.0,
-                "oldbalanceOrg": 350000.0,
-                "newbalanceOrig": 0.0,
-                "oldbalanceDest": 15000.0,
-                "newbalanceDest": 365000.0,
-            }
-            sanitized, warnings = sanitize_payload(payload)
-            domain_feats = compute_domain_features_dict(sanitized)
-            self.assertEqual(domain_feats["isCompleteDrain"], 1.0)
+            self.assertLess(payload["inference_latency_ms"], 50.0)
+            tested = True
+        except (ImportError, RuntimeError):
+            pass
+
+        # Directly invoke the FastAPI endpoint function
+        if not tested:
+            from api import score_transaction, TransactionPayload
+            payload_obj = TransactionPayload(**request_body)
+            result = score_transaction(payload_obj)
+            self.assertEqual(result.status, "success")
+            self.assertIn(result.action, ["ALLOW", "REVIEW", "BLOCK"])
+            self.assertEqual(result.compliance.ndpr_status, "COMPLIANT")
+            self.assertTrue(result.compliance.stateless_processing)
+            self.assertLess(result.inference_latency_ms, 50.0)
 
     def test_ndpr_salted_sha256_pseudonymization(self):
         """
