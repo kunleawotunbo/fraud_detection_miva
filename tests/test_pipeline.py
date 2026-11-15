@@ -12,6 +12,7 @@ import time
 import unittest
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import StratifiedKFold
 
 # Guarantee project root is in sys.path regardless of execution context
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -66,8 +67,7 @@ class TestMobileMoneySurveillanceSystem(unittest.TestCase):
         Expected Result: Resample train fold to 50/50 balance; test fold untouched (0 data leakage).
         Status: PASSED
         """
-        from sklearn.model_selection import StratifiedKFold
-
+        # Stratified 5-Fold split (80% train, 20% test) preserving minority representation
         n_total = 2000
         n_fraud = 20  # imbalanced minority distribution
         n_legit = n_total - n_fraud

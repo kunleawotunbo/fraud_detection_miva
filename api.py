@@ -377,3 +377,14 @@ def heuristic_feature_contributions(feat_dict: Dict[str, Any]) -> List[RiskFacto
         contribs.append(RiskFactor(feature="step", contribution=0.01))
     return contribs
 
+
+if __name__ == "__main__":
+    import uvicorn
+    print("\n=======================================================", flush=True)
+    print(" 🛡️  Mobile Money Fraud Surveillance REST API Gateway", flush=True)
+    print(" Swagger Documentation: http://127.0.0.1:8000/docs", flush=True)
+    print(" Alternative Local URL: http://localhost:8000/docs", flush=True)
+    print(" System Health Endpoint: http://127.0.0.1:8000/health", flush=True)
+    print("=======================================================\n", flush=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+
