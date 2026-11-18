@@ -115,6 +115,8 @@ fraud_detection_miva/
 ├── train.py                             # 5-Fold Stratified CV & artifact serialization
 ├── api.py                               # High-throughput FastAPI REST scoring gateway
 ├── app.py                               # Executive Streamlit surveillance dashboard
+├── run_api.bat / run_api.ps1            # Standalone launcher for FastAPI REST gateway
+├── run_app.bat / run_app.ps1            # Standalone launcher for Streamlit dashboard
 ├── Dockerfile                           # Multi-stage production container build
 ├── docker-compose.yml                   # Container orchestration definition
 ├── entrypoint.sh                        # Microservice launch script
@@ -172,11 +174,45 @@ pytest -v tests/test_pipeline.py
 ```
 
 ### Step 5: Launch the Executive Streamlit Dashboard
-Launch the interactive compliance and surveillance dashboard:
+The surveillance console provides real-time transaction inspection, TreeSHAP feature attribution, batch CSV audits, and model benchmark comparisons.
+
+You can launch the dashboard using any of the following options:
+
+#### Option A: One-Click Launcher (Recommended for Windows)
+Double-click `run_app.bat` in File Explorer, or run in PowerShell:
+```powershell
+.\run_app.bat
+# Or using the PowerShell script:
+.\run_app.ps1
+```
+*This automatically sets `PYTHONPATH=.`, uses the virtual environment's Python, and opens the dashboard.*
+
+#### Option B: From an Activated Virtual Environment
+First activate the virtual environment in your terminal:
+```powershell
+# In PowerShell:
+.\venv\Scripts\Activate.ps1
+# (If execution policy blocks scripts: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass)
+
+# In Command Prompt (cmd):
+venv\Scripts\activate.bat
+```
+Then launch Streamlit:
 ```bash
 streamlit run app.py
+# Or equivalently:
+python -m streamlit run app.py
 ```
-Open your browser at `http://localhost:8501`.
+
+#### Option C: Direct Execution Without Activating
+If you do not want to activate the virtual environment in your shell:
+```powershell
+.\venv\Scripts\python.exe -m streamlit run app.py
+```
+
+#### Accessing the Dashboard:
+Once started, the console will be accessible in your web browser at:
+- **Local URL:** `http://localhost:8501`
 
 #### Thesis Screenshot Capture Guide:
 1. **Figure 4.2 (Single Transaction Inspector):**  
@@ -187,11 +223,39 @@ Open your browser at `http://localhost:8501`.
    Navigate to **Tab 2**, click `📂 Load Pre-Built Switch Sample (1,000 Tx)`, and capture the throughput rate, anomaly distribution pie chart, and filtered auditable ledger.
 
 ### Step 6: Launch and Test the FastAPI REST Scoring Gateway
-In a terminal, start the asynchronous scoring gateway:
-```bash
-uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+The REST API gateway provides sub-15ms real-time transaction scoring with NDPR SHA-256 account pseudonymization and local TreeSHAP explanations.
+
+You can launch the API gateway using any of the following options:
+
+#### Option A: One-Click Launcher (Recommended for Windows)
+Double-click `run_api.bat` in File Explorer, or run in PowerShell:
+```powershell
+.\run_api.bat
+# Or using the PowerShell script:
+.\run_api.ps1
 ```
-Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
+
+#### Option B: Running the Python Entrypoint
+In an activated terminal (`.\venv\Scripts\Activate.ps1`):
+```powershell
+python api.py
+```
+
+#### Option C: Using Uvicorn CLI
+```powershell
+uvicorn api:app --host 0.0.0.0 --port 8000
+```
+> [!NOTE]
+> On Windows, avoid the `--reload` flag during normal execution, as Uvicorn's `watchfiles` file watcher attempts to recursively scan all 35,000+ library files inside `venv/`, which can cause a startup freeze.
+
+#### Option D: Direct Invocation Without Activating
+```powershell
+.\venv\Scripts\python.exe api.py
+```
+
+#### Accessing the API:
+- **Swagger OpenAPI Documentation:** `http://localhost:8000/docs` (or `http://127.0.0.1:8000/docs`)
+- **System Health Check:** `http://localhost:8000/health`
 
 #### Test Single Transaction Scoring via cURL / PowerShell:
 ```bash
