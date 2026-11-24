@@ -302,6 +302,18 @@ Response payload (sub-15ms execution):
 }
 ```
 
+#### Sample Dummy Test API (`sample_api.py`)
+For lightweight connectivity testing without loading the ML model artifacts, you can launch the temporary dummy FastAPI server on port `8001`:
+```powershell
+.\venv\Scripts\python.exe -u sample_api.py
+```
+- **Swagger UI:** `http://127.0.0.1:8001/docs`
+- **Health Check:** `http://127.0.0.1:8001/health`
+- **Test Dummy Endpoint (`POST /test`):**
+  ```powershell
+  Invoke-RestMethod -Uri "http://127.0.0.1:8001/test" -Method Post -ContentType "application/json" -Body '{"amount": 50000.0, "type": "TRANSFER"}'
+  ```
+
 ### Step 7: Containerized Deployment via Docker
 Build and run the multi-stage Docker container packaging both the REST API and Streamlit:
 ```bash
