@@ -227,7 +227,16 @@ The REST API gateway provides sub-15ms real-time transaction scoring with NDPR S
 
 You can launch the API gateway using any of the following options:
 
-#### Option A: One-Click Launcher (Recommended for Windows)
+#### Option A: Direct Invocation Without Activating (Recommended)
+```powershell
+.\venv\Scripts\python.exe -u api.py
+```
+> [!NOTE]
+> - `-u` forces unbuffered output so model-loading and Uvicorn logs appear immediately.
+> - Allow **~5 seconds** for `xgboost_model.joblib`, `explainer.joblib`, and `scaler.joblib` to load before Uvicorn binds to port `8000`.
+> - Run this in a standard Windows PowerShell or Command Prompt window (not a restricted/sandboxed shell where `asyncio` `socketpair()` port binding is blocked).
+
+#### Option B: One-Click Launcher (Windows Batch / PowerShell)
 Double-click `run_api.bat` in File Explorer, or run in PowerShell:
 ```powershell
 .\run_api.bat
@@ -235,27 +244,23 @@ Double-click `run_api.bat` in File Explorer, or run in PowerShell:
 .\run_api.ps1
 ```
 
-#### Option B: Running the Python Entrypoint
+#### Option C: Running the Python Entrypoint
 In an activated terminal (`.\venv\Scripts\Activate.ps1`):
 ```powershell
 python api.py
 ```
 
-#### Option C: Using Uvicorn CLI
+#### Option D: Using Uvicorn CLI
 ```powershell
 uvicorn api:app --host 0.0.0.0 --port 8000
 ```
 > [!NOTE]
 > On Windows, avoid the `--reload` flag during normal execution, as Uvicorn's `watchfiles` file watcher attempts to recursively scan all 35,000+ library files inside `venv/`, which can cause a startup freeze.
 
-#### Option D: Direct Invocation Without Activating
-```powershell
-.\venv\Scripts\python.exe api.py
-```
-
-#### Accessing the API:
-- **Swagger OpenAPI Documentation:** `http://localhost:8000/docs` (or `http://127.0.0.1:8000/docs`)
-- **System Health Check:** `http://localhost:8000/health`
+#### Live Endpoints (After Starting):
+- **Swagger UI:** `http://127.0.0.1:8000/docs` (or `http://localhost:8000/docs`)
+- **Health Check:** `http://127.0.0.1:8000/health`
+- **Score Transaction (`POST`):** `http://127.0.0.1:8000/api/v1/score-transaction`
 
 #### Test Single Transaction Scoring via cURL / PowerShell:
 ```bash
